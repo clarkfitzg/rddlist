@@ -36,12 +36,12 @@ rddlist = function(sc, data, cache=TRUE){
 
     # This is all written specifically for bytes, so should be fine to let this 
     # classTag hang around
-    new_rddlist_object(pairRDD, invoke(RDD, "classTag"), cache)
+    new_rddlist(pairRDD, invoke(RDD, "classTag"), cache)
 }
 
 
 # Create an instance of rddlist as subclass of sparkapi spark_jobj
-new_rddlist_object <- function(pairRDD, classTag, cache){
+new_rddlist <- function(pairRDD, classTag, cache){
     out <- pairRDD
     attr(out, "classTag") <- classTag
     class(out) <- c("rddlist", class(pairRDD))
@@ -50,7 +50,7 @@ new_rddlist_object <- function(pairRDD, classTag, cache){
 }
 
 
-lapply.rddlist <- function(X, FUN, cache=TRUE){
+lapply_rdd <- function(X, FUN, cache=TRUE){
 # TODO: support dots function(X, FUN, ...){
 
     # The function should be in a particular form for calling Spark's
@@ -90,7 +90,7 @@ lapply.rddlist <- function(X, FUN, cache=TRUE){
     index = invoke(X, "keys")
     pairRDD = invoke(index, "zip", JavaRDD)
    
-    new_rddlist_object(pairRDD, X$classTag, cache)
+    new_rddlist(pairRDD, X$classTag, cache)
 }
 
 
@@ -113,10 +113,10 @@ lapply.rddlist <- function(X, FUN, cache=TRUE){
 zip2 = function(a, b, a_nested = FALSE, b_nested = FALSE){
     # They must be nested for this to work
     if(!a_nested){
-        a = lapply(a, list)
+        a = lapply_rdd(a, list)
     }
     if(!b_nested){
-        b = lapply(b, list)
+        b = lapply_rdd(b, list)
     }
     aval = invoke(a, "values")
     bval = invoke(b, "values")
@@ -150,7 +150,7 @@ zip2 = function(a, b, a_nested = FALSE, b_nested = FALSE){
     index = invoke(a, "keys")
     pairRDD = invoke(index, "zip", JavaRDD)
 
-    new_rddlist_object(pairRDD, a$classTag, cache=FALSE)
+    new_rddlist(pairRDD, a$classTag, cache=FALSE)
 }
 
 
@@ -164,7 +164,7 @@ zip_rdd = function(..., cache=TRUE){
     a = args[[1]]
     n = length(args)
 
-    zipped = lapply(a, list, cache = FALSE)
+    zipped = lapply_rdd(a, list, cache = FALSE)
 
     if(n == 1L){
         # Easy out for trivial case
@@ -199,7 +199,7 @@ mapply_rdd = function(FUN, ..., cache = TRUE){
         do.call(FUN, zipped_part)
     }
 
-    lapply(zipped, zipFUN, cache)
+    lapply_rdd(zipped, zipFUN, cache)
 }
 
 
@@ -248,6 +248,17 @@ test_that("simple indexing", {
     expect_equal(x[[i]], xrdd[[i]])
 })
 
+test_that("lapply_rdd", {
+
+    first5 = function(x) x[1:5]
+    fx = lapply(x, first5)
+    fxrdd = lapply_rdd(xrdd, first5)
+
+    fxrdd_collected = collect(fxrdd)
+
+    expect_equal(fx, fxrdd_collected)
+})
+
 test_that("zipping several RDD's", {
 
     set.seed(37)
@@ -277,15 +288,6 @@ test_that("zipping several RDD's", {
 
     expect_equal(abczip, abczip_rdd_collected)
 
-})
-
-test_that("lapply", {
-
-    first5 = function(x) x[1:5]
-    fx = lapply(x, first5)
-    fxrdd = collect(lapply(xrdd, first5))
-
-    expect_equal(fx, fxrdd)
 })
 
 test_that("mapply", {
