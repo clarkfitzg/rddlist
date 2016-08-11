@@ -17,8 +17,6 @@
 # limitations under the License.
 #
 
-# Utilities and Helpers
-
 # Fast append to list by using an accumulator.
 # http://stackoverflow.com/questions/17046336/here-we-go-again-append-an-element-to-a-list-in-r
 #
