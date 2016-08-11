@@ -34,3 +34,6 @@ vignettes/*.pdf
 
 # Spark logs
 log4j.spark.log*
+
+# Text editor
+*.swp

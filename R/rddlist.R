@@ -1,14 +1,11 @@
 # sparkapi provides all the invoke functions
 #' @importFrom sparkapi invoke invoke_new invoke_static
 
-# TODO: Would be better to turn this on as an option in Spark
-# Not using caching currently while developing
-CACHE_DEFAULT = TRUE
 
 # A basic R list implemented in Spark.
 # 
 # Each element of the local R list corresponds to an element of the Spark RDD.
-rddlist = function(sc, data){
+rddlist = function(sc, data, cache=TRUE){
 
     if(any(class(data) == "rddlist")){
         return(data)
@@ -36,23 +33,24 @@ rddlist = function(sc, data){
 
     # The pairRDD of (integer, data) 
     pairRDD = invoke(index, "zip", RDD)
- 
+
     # This is all written specifically for bytes, so should be fine to let this 
     # classTag hang around
-    new_rddlist_object(pairRDD, invoke(RDD, "classTag") )
+    new_rddlist_object(pairRDD, invoke(RDD, "classTag"), cache)
 }
 
 
 # Create an instance of rddlist as subclass of sparkapi spark_jobj
-new_rddlist_object <- function(pairRDD, classTag){
+new_rddlist_object <- function(pairRDD, classTag, cache){
     out <- pairRDD
     attr(out, "classTag") <- classTag
     class(out) <- c("rddlist", class(pairRDD))
+    if(cache) invoke(out, "cache")
     out
 }
 
 
-lapply.rddlist <- function(X, FUN){
+lapply.rddlist <- function(X, FUN, cache=TRUE){
 # TODO: support dots function(X, FUN, ...){
 
     # The function should be in a particular form for calling Spark's
@@ -92,7 +90,7 @@ lapply.rddlist <- function(X, FUN){
     index = invoke(X, "keys")
     pairRDD = invoke(index, "zip", JavaRDD)
    
-    new_rddlist_object(pairRDD, X$classTag)
+    new_rddlist_object(pairRDD, X$classTag, cache)
 }
 
 
@@ -152,21 +150,21 @@ zip2 = function(a, b, a_nested = FALSE, b_nested = FALSE){
     index = invoke(a, "keys")
     pairRDD = invoke(index, "zip", JavaRDD)
 
-    new_rddlist_object(pairRDD, a$classTag)
+    new_rddlist_object(pairRDD, a$classTag, cache=FALSE)
 }
 
 
-# For rdds a, b, ... , z of the same length n this creates an rddlist of length n
-# where the ith element has the value list(a[[i]], b[[i]], ..., z[[i]]).
+# For rdds a, b, ... of the same length n this creates an rddlist of length n
+# where the ith element has the value list(a[[i]], b[[i]], ... )
 #
 # It always returns a nested list.
 #
-zip_rdd = function(...){
+zip_rdd = function(..., cache=TRUE){
     args = list(...)
     a = args[[1]]
     n = length(args)
 
-    zipped = lapply(a, list)
+    zipped = lapply(a, list, cache = FALSE)
 
     if(n == 1L){
         # Easy out for trivial case
@@ -178,25 +176,30 @@ zip_rdd = function(...){
     for(i in 2:n){
         zipped = zip2(zipped, args[[i]], a_nested = TRUE)
     }
+
+    # The idea with caching is to avoid it in the intermediate steps
+    # TODO: verify that this strategy is actually useful
+    if(cache) invoke(zipped, "cache")
+
     zipped
 }
 
 
 # A version of mapply that works with rddlists
 # ... should be rddlists
-mapply_rdd = function(FUN, ...){
+mapply_rdd = function(FUN, ..., cache = TRUE){
 
     # TODO: add recycling, Moreargs
 
     FUN = match.fun(FUN)
-    zipped = zip_rdd(...)
+    zipped = zip_rdd(..., cache = FALSE)
     
     # The parts in zipped are always lists
     zipFUN = function(zipped_part){
         do.call(FUN, zipped_part)
     }
 
-    lapply(zipped, zipFUN)
+    lapply(zipped, zipFUN, cache)
 }
 
 
