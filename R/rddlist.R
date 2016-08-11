@@ -14,11 +14,11 @@ NULL
 #'      memory?
 #'
 #' @return rddlist A Spark Java Object representing the rddlist
+#'
 #' @examples
 #' x <- list(1:10, letters, rnorm(10))
-#' \dontrun{
 #' xrdd <- rddlist(sc, x)
-#' }
+#'
 #' @export
 rddlist = function(sc, X, cache=TRUE){
     if(!is.list(X)){
@@ -73,12 +73,12 @@ new_rddlist <- function(pairRDD, classTag, cache){
 #'      memory?
 #'
 #' @return rddlist A Spark Java Object representing the resulting rddlist
+#'
 #' @examples
 #' x <- list(1:10, letters, rnorm(10))
-#' \dontrun{
 #' xrdd <- rddlist(sc, x)
 #' lapply_rdd(xrdd, head)
-#' }
+#'
 #' @export
 rddlist = function(sc, X, cache=TRUE){
     if(!is.list(X)){
@@ -133,12 +133,12 @@ new_rddlist <- function(pairRDD, classTag, cache){
 #'      memory?
 #'
 #' @return rddlist A Spark Java Object representing the resulting rddlist
+#'
 #' @examples
 #' x <- list(1:10, letters, rnorm(10))
-#' \dontrun{
 #' xrdd <- rddlist(sc, x)
 #' lapply_rdd(xrdd, head)
-#' }
+#'
 #' @export
 lapply_rdd <- function(X, FUN, cache=TRUE){
 # TODO: support dots function(X, FUN, ...){
@@ -293,12 +293,12 @@ zip_rdd = function(..., cache=TRUE){
 #'      memory?
 #'
 #' @return rddlist A Spark Java Object representing the resulting rddlist
+#'
 #' @examples
-#' \dontrun{
 #' x <- rddlist(sc, list(1:10, letters, rnorm(10)))
 #' y <- rddlist(sc, list(21:30, LETTERS, rnorm(10)))
 #' xy <- mapply_rdd(c, x, y)
-#' }
+#'
 #' @export
 mapply_rdd = function(FUN, ..., cache = TRUE){
 
@@ -337,11 +337,10 @@ length_rdd = function(rdd){
 #'
 #' @examples
 #' x <- list(1:10, letters, rnorm(10))
-#' \dontrun{
 #' xrdd <- rddlist(sc, x)
 #' x2 <- collect(xrdd)
 #' identical(x, x2)
-#' }
+#'
 #' @export
 collect = function(rdd){
     values = invoke(rdd, "values")
@@ -505,6 +504,7 @@ zip_rdd = function(..., cache=TRUE){
 #'      memory?
 #'
 #' @return rddlist A Spark Java Object representing the resulting rddlist
+#'
 #' @examples
 #' x <- rddlist(sc, list(1:10, letters, rnorm(10)))
 #' y <- rddlist(sc, list(21:30, LETTERS, rnorm(10)))
@@ -547,11 +547,9 @@ length_rdd = function(rdd){
 #'
 #' @examples
 #' x <- list(1:10, letters, rnorm(10))
-#' \dontrun{
 #' xrdd <- rddlist(sc, x)
 #' x2 <- collect(xrdd)
 #' identical(x, x2)
-#' }
 #' @export
 collect = function(rdd){
     values = invoke(rdd, "values")
