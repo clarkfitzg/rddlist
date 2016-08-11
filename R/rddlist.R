@@ -2,20 +2,29 @@
 #' @importFrom sparkapi invoke invoke_new invoke_static
 
 
-# A basic R list implemented in Spark.
-# 
-# Each element of the local R list corresponds to an element of the Spark RDD.
-rddlist = function(sc, data, cache=TRUE){
+#' Create an rddlist from a local R list.
+#' 
+#' Each element of the local R list corresponds to an element of the Spark
+#' RDD (Resilient Distributed Dataset)
+#'
+#' @param sc Spark connection as returned from
+#'      \code{\link[sparkapi]{start_shell}}
+#' @param X local R list.
+#' @param cache logical - Should the resulting RDD be cached in Spark's
+#'      memory?
+#'
+#' @return rddlist A Spark Java Object representing the rddlist
+#' @export
+#' @examples
+#' x <- list(1:10, letters, rnorm(10))
+#' xrdd <- rddlist(sc, x)
+rddlist = function(sc, X, cache=TRUE){
 
-    if(any(class(data) == "rddlist")){
-        return(data)
+    if(!is.list(X)){
+        stop("X should be a list")
     }
 
-    if(!is.list(data)){
-        stop("data should be a list")
-    }
-
-    serial_parts = lapply(data, serialize, connection = NULL)
+    serial_parts = lapply(X, serialize, connection = NULL)
 
     # An RDD of the serialized R parts
     # This is class org.apache.spark.api.java.JavaRDD
@@ -40,7 +49,10 @@ rddlist = function(sc, data, cache=TRUE){
 }
 
 
-# Create an instance of rddlist as subclass of sparkapi spark_jobj
+#' new rddlist
+#'
+#' Create an instance of rddlist as subclass of sparkapi spark_jobj
+#'
 new_rddlist <- function(pairRDD, classTag, cache){
     out <- pairRDD
     attr(out, "classTag") <- classTag
@@ -50,6 +62,22 @@ new_rddlist <- function(pairRDD, classTag, cache){
 }
 
 
+#' Apply a Function over an rddlist
+#' 
+#' Modeled after \code{lapply} in base R
+#'
+#' @param X rddlist
+#' @param FUN function to apply to each element of X
+#' @param cache logical - Should the resulting RDD be cached in Spark's
+#'      memory?
+#'
+#' @return rddlist A Spark Java Object representing the resulting rddlist
+#' @export
+#' @examples
+#' x <- list(1:10, letters, rnorm(10))
+#' xrdd <- rddlist(sc, x)
+#' lapply_rdd(xrdd, head)
+#'
 lapply_rdd <- function(X, FUN, cache=TRUE){
 # TODO: support dots function(X, FUN, ...){
 
@@ -94,7 +122,9 @@ lapply_rdd <- function(X, FUN, cache=TRUE){
 }
 
 
-#`[[.rddlist` <- function(x, i, j){
+#' Collect the ith element of an rddlist
+#'
+#' @export
 `[[.rddlist` <- function(x, i){
     javaindex = as.integer(i - 1L)
     javabytes = invoke(x, "lookup", javaindex)
@@ -104,12 +134,12 @@ lapply_rdd <- function(X, FUN, cache=TRUE){
 }
 
 
-# a_nested = TRUE means that a is already in the form of a nested list with
-# two layers: [ [a1], [a2], ... , [an] ]
-# 
-# Would be better to have this function be private and zip_rdd be the
-# public exported function.
-#
+#' zip 2 rddlists into one
+#'
+#' This does the actual work for zip_rdd
+#'
+#' a_nested = TRUE means that a is already in the form of a nested list with
+#' two layers: [ [a1], [a2], ... , [an] ]
 zip2 = function(a, b, a_nested = FALSE, b_nested = FALSE){
     # They must be nested for this to work
     if(!a_nested){
@@ -154,11 +184,18 @@ zip2 = function(a, b, a_nested = FALSE, b_nested = FALSE){
 }
 
 
-# For rdds a, b, ... of the same length n this creates an rddlist of length n
-# where the ith element has the value list(a[[i]], b[[i]], ... )
-#
-# It always returns a nested list.
-#
+#' Zip rdds together
+#' 
+#' For rdds a, b, ... of the same length n this creates an rddlist of length n
+#' where the ith element has the value list(a[[i]], b[[i]], ... )
+#'
+#' It always returns a nested list.
+#'
+#' @param ... rddlists of the same length
+#' @param cache logical - Should the resulting RDD be cached in Spark's
+#'      memory?
+#'
+#' @return rddlist A Spark Java Object representing the resulting rddlist
 zip_rdd = function(..., cache=TRUE){
     args = list(...)
     a = args[[1]]
@@ -185,12 +222,25 @@ zip_rdd = function(..., cache=TRUE){
 }
 
 
-# A version of mapply that works with rddlists
-# ... should be rddlists
+#' Apply a Function to multiple rddlist arguments
+#' 
+#' Modeled after \code{mapply} in base R
+#'
+#' @param FUN function to apply to each element of X
+#' @param ... rddlists of the same length
+#' @param cache logical - Should the resulting RDD be cached in Spark's
+#'      memory?
+#'
+#' @return rddlist A Spark Java Object representing the resulting rddlist
+#' @export
+#' @examples
+#' x <- rddlist(sc, list(1:10, letters, rnorm(10)))
+#' y <- rddlist(sc, list(21:30, LETTERS, rnorm(10)))
+#' xy <- mapply_rdd(c, x, y)
+#'
 mapply_rdd = function(FUN, ..., cache = TRUE){
 
     # TODO: add recycling, Moreargs
-
     FUN = match.fun(FUN)
     zipped = zip_rdd(..., cache = FALSE)
     
@@ -203,13 +253,34 @@ mapply_rdd = function(FUN, ..., cache = TRUE){
 }
 
 
+#' length of rddlist
+#' 
+#' @param rdd rddlist
+#'
+#' @return n integer length 
+#' @export
 length_rdd = function(rdd){
     # sparkapi maps Java long -> double
     as.integer(invoke(rdd, "count"))
 }
 
 
-# Collects and unserializes the entire rdd from Spark back into local R.
+#' Collect from Spark
+#' 
+#' Collects and unserializes the entire rdd from Spark back into local R.
+#' 
+#' @param rdd rddlist
+#'
+#' @return list The contents of rddlist in a local R list
+#'
+#' @examples
+#' x <- list(1:10, letters, rnorm(10))
+#' xrdd <- rddlist(sc, x)
+#' x2 <- collect(xrdd)
+#' identical(x, x2)
+#'
+#' @export
+#'
 collect = function(rdd){
     values = invoke(rdd, "values")
     collected = invoke(values, "collect")

@@ -5,8 +5,13 @@ Version: 0.1.0
 Date: 2016-08-11
 Author: Clark Fitzgerald
 Maintainer: Clark Fitzgerald <clarkfitzg@gmail.com>
-Depends: R (>= 3.0.0)
-Imports: sparkapi
-Suggests: testthat
-Description: Lightweight implementation of some methods of an R list as a Spark RDD (resilient distributed dataset)
+Depends:
+    R (>= 3.0.0)
+Imports:
+    sparkapi
+Suggests:
+    testthat
+Description: Lightweight implementation of some methods of an R list as a Spark
+    RDD (resilient distributed dataset)
 License: 
+RoxygenNote: 5.0.1

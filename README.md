@@ -1,2 +1,7 @@
 # rddlist
-Implements some methods of an R list as a Spark RDD
+
+Implements distributed computation through `[[`, `lapply`, and `mapply` on
+an R list with a Spark backend.
+
+Work supported by [R-Consortium](https://www.r-consortium.org/projects) ddR
+project.
