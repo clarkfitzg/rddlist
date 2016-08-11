@@ -10,8 +10,9 @@ Depends:
 Imports:
     sparkapi
 Suggests:
-    testthat
-Description: Lightweight implementation of some methods of an R list as a Spark
-    RDD (resilient distributed dataset)
-License: 
+    testthat, ddR
+Description: Provides distributed computation through a 
+    lightweight implementation of an R list backed by a Spark RDD 
+    (resilient distributed dataset)
+License: MIT
 RoxygenNote: 5.0.1
