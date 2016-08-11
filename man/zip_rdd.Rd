@@ -5,15 +5,8 @@
 \title{Zip rdds together}
 \usage{
 zip_rdd(..., cache = TRUE)
-
-zip_rdd(..., cache = TRUE)
 }
 \arguments{
-\item{...}{rddlists of the same length}
-
-\item{cache}{logical - Should the resulting RDD be cached in Spark's
-memory?}
-
 \item{...}{rddlists of the same length}
 
 \item{cache}{logical - Should the resulting RDD be cached in Spark's
@@ -21,19 +14,12 @@ memory?}
 }
 \value{
 rddlist A Spark Java Object representing the resulting rddlist
-
-rddlist A Spark Java Object representing the resulting rddlist
 }
 \description{
 For rdds a, b, ... of the same length n this creates an rddlist of length n
 where the ith element has the value list(a[[i]], b[[i]], ... )
-
-For rdds a, b, ... of the same length n this creates an rddlist of length n
-where the ith element has the value list(a[[i]], b[[i]], ... )
 }
 \details{
-It always returns a nested list.
-
 It always returns a nested list.
 }
 

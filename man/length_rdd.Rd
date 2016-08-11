@@ -5,22 +5,14 @@
 \title{length of rddlist}
 \usage{
 length_rdd(rdd)
-
-length_rdd(rdd)
 }
 \arguments{
-\item{rdd}{rddlist}
-
 \item{rdd}{rddlist}
 }
 \value{
 n integer length
-
-n integer length
 }
 \description{
-length of rddlist
-
 length of rddlist
 }
 

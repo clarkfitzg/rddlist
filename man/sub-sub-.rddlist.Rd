@@ -5,12 +5,8 @@
 \title{Collect the ith element of an rddlist}
 \usage{
 \method{[[}{rddlist}(x, i)
-
-\method{[[}{rddlist}(x, i)
 }
 \description{
-Collect the ith element of an rddlist
-
 Collect the ith element of an rddlist
 }
 

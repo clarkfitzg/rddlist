@@ -5,17 +5,8 @@
 \title{Apply a Function to multiple rddlist arguments}
 \usage{
 mapply_rdd(FUN, ..., cache = TRUE)
-
-mapply_rdd(FUN, ..., cache = TRUE)
 }
 \arguments{
-\item{FUN}{function to apply to each element of X}
-
-\item{...}{rddlists of the same length}
-
-\item{cache}{logical - Should the resulting RDD be cached in Spark's
-memory?}
-
 \item{FUN}{function to apply to each element of X}
 
 \item{...}{rddlists of the same length}
@@ -25,12 +16,8 @@ memory?}
 }
 \value{
 rddlist A Spark Java Object representing the resulting rddlist
-
-rddlist A Spark Java Object representing the resulting rddlist
 }
 \description{
-Modeled after \code{mapply} in base R
-
 Modeled after \code{mapply} in base R
 }
 \examples{
@@ -38,8 +25,5 @@ x <- rddlist(sc, list(1:10, letters, rnorm(10)))
 y <- rddlist(sc, list(21:30, LETTERS, rnorm(10)))
 xy <- mapply_rdd(c, x, y)
 
-x <- rddlist(sc, list(1:10, letters, rnorm(10)))
-y <- rddlist(sc, list(21:30, LETTERS, rnorm(10)))
-xy <- mapply_rdd(c, x, y)
 }
 

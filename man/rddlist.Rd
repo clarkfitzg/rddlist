@@ -5,8 +5,6 @@
 \title{Create an rddlist from a local R list.}
 \usage{
 rddlist(sc, X, cache = TRUE)
-
-rddlist(sc, X, cache = TRUE)
 }
 \arguments{
 \item{sc}{Spark connection as returned from
@@ -16,32 +14,17 @@ rddlist(sc, X, cache = TRUE)
 
 \item{cache}{logical - Should the resulting RDD be cached in Spark's
 memory?}
-
-\item{X}{rddlist}
-
-\item{FUN}{function to apply to each element of X}
-
-\item{cache}{logical - Should the resulting RDD be cached in Spark's
-memory?}
 }
 \value{
 rddlist A Spark Java Object representing the rddlist
-
-rddlist A Spark Java Object representing the resulting rddlist
 }
 \description{
 Each element of the local R list corresponds to an element of the Spark
 RDD (Resilient Distributed Dataset)
-
-Modeled after \code{lapply} in base R
 }
 \examples{
 x <- list(1:10, letters, rnorm(10))
 xrdd <- rddlist(sc, x)
-
-x <- list(1:10, letters, rnorm(10))
-xrdd <- rddlist(sc, x)
-lapply_rdd(xrdd, head)
 
 }
 

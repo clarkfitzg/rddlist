@@ -5,12 +5,8 @@
 \title{new rddlist}
 \usage{
 new_rddlist(pairRDD, classTag, cache)
-
-new_rddlist(pairRDD, classTag, cache)
 }
 \description{
-Create an instance of rddlist as subclass of sparkapi spark_jobj
-
 Create an instance of rddlist as subclass of sparkapi spark_jobj
 }
 
