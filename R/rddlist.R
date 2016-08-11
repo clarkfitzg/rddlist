@@ -1,6 +1,6 @@
-# sparkapi provides all the invoke functions
+# Anything with invoke comes from sparkapi
 #' @importFrom sparkapi invoke invoke_new invoke_static
-
+NULL
 
 #' Create an rddlist from a local R list.
 #' 
@@ -14,12 +14,11 @@
 #'      memory?
 #'
 #' @return rddlist A Spark Java Object representing the rddlist
-#' @export
 #' @examples
 #' x <- list(1:10, letters, rnorm(10))
 #' xrdd <- rddlist(sc, x)
+#' @export
 rddlist = function(sc, X, cache=TRUE){
-
     if(!is.list(X)){
         stop("X should be a list")
     }
@@ -72,12 +71,11 @@ new_rddlist <- function(pairRDD, classTag, cache){
 #'      memory?
 #'
 #' @return rddlist A Spark Java Object representing the resulting rddlist
-#' @export
 #' @examples
 #' x <- list(1:10, letters, rnorm(10))
 #' xrdd <- rddlist(sc, x)
 #' lapply_rdd(xrdd, head)
-#'
+#' @export
 lapply_rdd <- function(X, FUN, cache=TRUE){
 # TODO: support dots function(X, FUN, ...){
 
@@ -123,7 +121,6 @@ lapply_rdd <- function(X, FUN, cache=TRUE){
 
 
 #' Collect the ith element of an rddlist
-#'
 #' @export
 `[[.rddlist` <- function(x, i){
     javaindex = as.integer(i - 1L)
@@ -232,12 +229,11 @@ zip_rdd = function(..., cache=TRUE){
 #'      memory?
 #'
 #' @return rddlist A Spark Java Object representing the resulting rddlist
-#' @export
 #' @examples
 #' x <- rddlist(sc, list(1:10, letters, rnorm(10)))
 #' y <- rddlist(sc, list(21:30, LETTERS, rnorm(10)))
 #' xy <- mapply_rdd(c, x, y)
-#'
+#' @export
 mapply_rdd = function(FUN, ..., cache = TRUE){
 
     # TODO: add recycling, Moreargs
@@ -278,9 +274,7 @@ length_rdd = function(rdd){
 #' xrdd <- rddlist(sc, x)
 #' x2 <- collect(xrdd)
 #' identical(x, x2)
-#'
 #' @export
-#'
 collect = function(rdd){
     values = invoke(rdd, "values")
     collected = invoke(values, "collect")
