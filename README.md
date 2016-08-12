@@ -1,12 +1,13 @@
 # rddlist
 
-Implements distributed computation on an R list with a Spark backend.  This
-allows an R programmer to use familiar operations like `[[`, `lapply`, and
-`mapply` from within R to perform computation on larger data sets using a
-Spark cluster. This is a powerful combination, as any data in R can be
-represented with a list, and `*apply` operations allow the application of
-arbitrary user defined functions, provided they are pure. So this should
-work well for embarrassingly parallel problems.
+Implements distributed computation on an R list with an [Apache
+Spark](http://spark.apache.org/) backend.  This allows an R programmer to
+use familiar operations like `[[`, `lapply`, and `mapply` from within R to
+perform computation on larger data sets using a Spark cluster. This is a
+powerful combination, as any data in R can be represented with a list, and
+`*apply` operations allow the application of arbitrary user defined
+functions, provided they are pure. So this should work well for
+embarrassingly parallel problems.
 
 The main purpose of this project is to serve as an object that will connect
 Spark to the more general [ddR project](https://github.com/vertica/ddR)
@@ -31,7 +32,7 @@ xrdd <- rddlist(sc, x)
 ```
 
 `xrdd` is an object in the local R session referencing the actual data
-residing in Spark.
+residing in Spark. 
 Collecting deserializes the object from Spark into local R.
 
 ```R
@@ -39,6 +40,10 @@ x2 <- collect(xrdd)
 identical(x, x2)
 # [1] TRUE
 ```
+
+There is an exact correspondence between the structures
+in Spark and local R to simplify reasoning about how the data is stored in
+Spark.
 
 `[[` will also collect.
 
