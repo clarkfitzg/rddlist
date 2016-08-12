@@ -30,7 +30,7 @@ x <- list(1:10, letters, rnorm(10))
 xrdd <- rddlist(sc, x)
 ```
 
-`xrdd` is an object in the local R session which references the actual data
+`xrdd` is an object in the local R session referencing the actual data
 residing in Spark.
 Collecting deserializes the object from Spark into local R.
 
@@ -49,7 +49,7 @@ xrdd[[1]]
 
 `lapply_rdd` and `mapply_rdd` work similarly to their counterparts in base R.
 
-```
+```R
 first3 <- lapply_rdd(xrdd, function(x) x[1:3])
 collect(first3)
 # [[1]]
