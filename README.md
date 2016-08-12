@@ -1,6 +1,12 @@
 # rddlist
 
-Implements distributed computation on an R list with an [Apache
+__ATTENTION: This package should be considered as an experimental beta
+version only. I have yet to test it on a real cluster :)__
+
+Please see [SparkR](https://spark.apache.org/docs/latest/sparkr.html) for
+the official Apache supported Spark / R interface.
+
+__`rddlist`__ Implements distributed computation on an R list with an [Apache
 Spark](http://spark.apache.org/) backend.  This allows an R programmer to
 use familiar operations like `[[`, `lapply`, and `mapply` from within R to
 perform computation on larger data sets using a Spark cluster. This is a
