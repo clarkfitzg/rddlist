@@ -1,0 +1,86 @@
+---
+title: "rddlist"
+output:
+  github_document:
+    fig_width: 9
+    fig_height: 5
+---
+
+__ATTENTION: This package should be considered as an experimental beta
+version only. I have yet to test it on a real cluster :)__
+
+Please see [SparkR](https://spark.apache.org/docs/latest/sparkr.html) for
+the official Apache supported Spark / R interface.
+
+__`rddlist`__ Implements distributed computation on an R list with an [Apache
+Spark](http://spark.apache.org/) backend.  This allows an R programmer to
+use familiar operations like `[[`, `lapply`, and `mapply` from within R to
+perform computation on larger data sets using a Spark cluster. This is a
+powerful combination, as any data in R can be represented with a list, and
+`*apply` operations allow the application of arbitrary user defined
+functions, provided they are pure. So this should work well for
+embarrassingly parallel problems.
+
+The main purpose of this project is to serve as an object that will connect
+Spark to the more general [ddR project](https://github.com/vertica/ddR)
+(distributed data in R).  Work supported by
+[R-Consortium](https://www.r-consortium.org/projects).
+
+Under the hood this works by serializing each element of the list into a
+byte array and storing it in a Spark Pair RDD (resilient distributed data
+set).
+
+## Examples
+
+sparklyr provides the spark connections.
+
+```{r eval=FALSE}
+library(sparklyr)
+spark_install(version = "2.0.0")
+```
+
+```{r}
+library(sparklyr)
+library(rddlist)
+
+sc <- spark_connect(master = "local", version = "2.0.0")
+
+x <- list(1:10, letters, rnorm(10))
+xrdd <- rddlist(sc, x)
+```
+
+`xrdd` is an object in the local R session referencing the actual data
+residing in Spark. 
+Collecting deserializes the object from Spark into local R.
+
+```{r}
+x2 <- collect(xrdd)
+identical(x, x2)
+```
+
+There is an exact correspondence between the structures
+in Spark and local R to simplify reasoning about how the data is stored in
+Spark.
+
+`[[` will also collect.
+
+```{r}
+xrdd[[1]]
+```
+
+`lapply_rdd` and `mapply_rdd` work similarly to their counterparts in base R.
+
+```{r}
+first3 <- lapply_rdd(xrdd, function(x) x[1:3])
+collect(first3)
+```
+
+```{r}
+yrdd <- rddlist(sc, list(21:30, LETTERS, rnorm(10)))
+xyrdd <- mapply_rdd(c, xrdd, yrdd)
+collect(xyrdd)
+```
+
+```{r}
+spark_disconnect(sc)
+```

@@ -1,5 +1,5 @@
-# Anything with invoke comes from sparkapi
-#' @importFrom sparkapi invoke invoke_new invoke_static
+# Anything with invoke comes from sparklyr
+#' @importFrom sparklyr invoke invoke_new invoke_static
 NULL
 
 #' Create an rddlist from a local R list.
@@ -8,7 +8,7 @@ NULL
 #' RDD (Resilient Distributed Dataset)
 #'
 #' @param sc Spark connection as returned from
-#'      \code{\link[sparkapi]{start_shell}}
+#'      \code{\link[sparklyr]{start_shell}}
 #' @param X local R list.
 #' @param cache logical - Should the resulting RDD be cached in Spark's
 #'      memory?
@@ -30,7 +30,7 @@ rddlist <- function(sc, X, cache = TRUE) {
     # An RDD of the serialized R parts This is class
     # org.apache.spark.api.java.JavaRDD
     RDD = invoke_static(sc, "org.apache.spark.api.r.RRDD", "createRDDFromArray",
-        sparkapi:::java_context(sc), serial_parts)
+        sparklyr:::java_context(sc), serial_parts)
 
     # (data, integer) pairs
     backwards = invoke(RDD, "zipWithIndex")
@@ -49,7 +49,7 @@ rddlist <- function(sc, X, cache = TRUE) {
 
 #' new rddlist
 #'
-#' Create an instance of rddlist as subclass of sparkapi spark_jobj
+#' Create an instance of rddlist as subclass of sparklyr spark_jobj
 #'
 new_rddlist <- function(pairRDD, classTag, cache) {
     out <- pairRDD
@@ -99,7 +99,7 @@ lapply_rdd <- function(X, FUN, cache = TRUE) {
     vals = invoke(X, "values")
 
     # Use Spark to apply FUN
-    fxrdd <- invoke_new(sparkapi::spark_connection(X), "org.apache.spark.api.r.RRDD",
+    fxrdd <- invoke_new(sparklyr::spark_connection(X), "org.apache.spark.api.r.RRDD",
         invoke(vals, "rdd"), serialize(FUN_clean, NULL), "byte", "byte", packageNamesArr,
         broadcastArr, X$classTag)
 
@@ -156,7 +156,7 @@ zip2 <- function(a, b, a_nested = FALSE, b_nested = FALSE) {
     packageNamesArr <- serialize(NULL, NULL)
     broadcastArr <- list()
 
-    pairs <- invoke_new(sparkapi::spark_connection(a), "org.apache.spark.api.r.RRDD",
+    pairs <- invoke_new(sparklyr::spark_connection(a), "org.apache.spark.api.r.RRDD",
         RDD, serialize(FUN_clean, NULL), "byte", "byte", packageNamesArr, broadcastArr,
         a$classTag)
 
@@ -246,7 +246,7 @@ mapply_rdd <- function(FUN, ..., cache = TRUE) {
 #' @return n integer length
 #' @export
 length_rdd <- function(rdd) {
-    # sparkapi maps Java long -> double
+    # sparklyr maps Java long -> double
     as.integer(invoke(rdd, "count"))
 }
 

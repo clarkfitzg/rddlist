@@ -110,14 +110,14 @@ processClosure <- function(node, oldEnv, defVars, checkedFuncs, newEnv) {
       topEnv <- parent.env(.GlobalEnv)
       # Search in function environment, and function's enclosing environments
       # up to global environment. There is no need to look into package environments
-      # above the global or namespace environment that is not sparkapi below the global,
+      # above the global or namespace environment that is not sparklyr below the global,
       # as they are assumed to be loaded on workers.
       while (!identical(func.env, topEnv)) {
-        # Namespaces other than "sparkapi" will not be searched.
+        # Namespaces other than "sparklyr" will not be searched.
         if (!isNamespace(func.env) ||
-            (getNamespaceName(func.env) == "sparkapi" &&
-             !(nodeChar %in% getNamespaceExports("sparkapi")))) {
-          # Only include sparkapi internals.
+            (getNamespaceName(func.env) == "sparklyr" &&
+             !(nodeChar %in% getNamespaceExports("sparklyr")))) {
+          # Only include sparklyr internals.
           
           # Set parameter 'inherits' to FALSE since we do not need to search in
           # attached package environments.

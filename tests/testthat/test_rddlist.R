@@ -1,5 +1,5 @@
 # Basic tests for rddlist
-library(sparkapi)
+library(sparklyr)
 
 if(!exists("sc")){
     sc <- start_shell(master = "local")
