@@ -3,7 +3,7 @@
 NULL
 
 #' Create an rddlist from a local R list.
-#' 
+#'
 #' Each element of the local R list corresponds to an element of the Spark
 #' RDD (Resilient Distributed Dataset)
 #'
@@ -20,20 +20,17 @@ NULL
 #' xrdd <- rddlist(sc, x)
 #'
 #' @export
-rddlist <- function(sc, X, cache=TRUE){
-    if(!is.list(X)){
+rddlist <- function(sc, X, cache = TRUE) {
+    if (!is.list(X)) {
         stop("X should be a list")
     }
 
     serial_parts = lapply(X, serialize, connection = NULL)
 
-    # An RDD of the serialized R parts
-    # This is class org.apache.spark.api.java.JavaRDD
-    RDD = invoke_static(sc,
-                        "org.apache.spark.api.r.RRDD",
-                        "createRDDFromArray",
-                        sparkapi::java_context(sc),
-                        serial_parts)
+    # An RDD of the serialized R parts This is class
+    # org.apache.spark.api.java.JavaRDD
+    RDD = invoke_static(sc, "org.apache.spark.api.r.RRDD", "createRDDFromArray",
+        sparkapi:::java_context(sc), serial_parts)
 
     # (data, integer) pairs
     backwards = invoke(RDD, "zipWithIndex")
@@ -41,10 +38,10 @@ rddlist <- function(sc, X, cache=TRUE){
     # An RDD of integers
     index = invoke(backwards, "values")
 
-    # The pairRDD of (integer, data) 
+    # The pairRDD of (integer, data)
     pairRDD = invoke(index, "zip", RDD)
 
-    # This is all written specifically for bytes, so should be fine to let this 
+    # This is all written specifically for bytes, so should be fine to let this
     # classTag hang around
     new_rddlist(pairRDD, invoke(RDD, "classTag"), cache)
 }
@@ -54,17 +51,18 @@ rddlist <- function(sc, X, cache=TRUE){
 #'
 #' Create an instance of rddlist as subclass of sparkapi spark_jobj
 #'
-new_rddlist <- function(pairRDD, classTag, cache){
+new_rddlist <- function(pairRDD, classTag, cache) {
     out <- pairRDD
     attr(out, "classTag") <- classTag
     class(out) <- c("rddlist", class(pairRDD))
-    if(cache) invoke(out, "cache")
+    if (cache)
+        invoke(out, "cache")
     out
 }
 
 
 #' Apply a Function over an rddlist
-#' 
+#'
 #' Modeled after \code{lapply} in base R
 #'
 #' @param X rddlist
@@ -80,8 +78,8 @@ new_rddlist <- function(pairRDD, classTag, cache){
 #' lapply_rdd(xrdd, head)
 #'
 #' @export
-lapply_rdd <- function(X, FUN, cache=TRUE){
-# TODO: support dots function(X, FUN, ...){
+lapply_rdd <- function(X, FUN, cache = TRUE) {
+    # TODO: support dots function(X, FUN, ...){
 
     # The function should be in a particular form for calling Spark's
     # org.apache.spark.api.r.RRDD class constructor
@@ -95,38 +93,30 @@ lapply_rdd <- function(X, FUN, cache=TRUE){
     broadcastArr <- list()
     # I believe broadcastArr holds these broadcast variables:
     # https://spark.apache.org/docs/latest/programming-guide.html#broadcast-variables
-    # But what's the relation between broadcast variables, FUN's closure,
-    # and the ... argument?
-    
+    # But what's the relation between broadcast variables, FUN's closure, and the ...
+    # argument?
+
     vals = invoke(X, "values")
 
     # Use Spark to apply FUN
-    fxrdd <- invoke_new(sparkapi::spark_connection(X),
-                       "org.apache.spark.api.r.RRDD",  # A new instance of this class
-                       invoke(vals, "rdd"),
-                       serialize(FUN_clean, NULL),
-                       "byte",  # name of serializer / deserializer
-                       "byte",  # name of serializer / deserializer
-                       packageNamesArr,  
-                       broadcastArr,
-                       X$classTag
-                       )
+    fxrdd <- invoke_new(sparkapi::spark_connection(X), "org.apache.spark.api.r.RRDD",
+        invoke(vals, "rdd"), serialize(FUN_clean, NULL), "byte", "byte", packageNamesArr,
+        broadcastArr, X$classTag)
 
-    # Convert this into class org.apache.spark.api.java.JavaRDD so we can
-    # zip
+    # Convert this into class org.apache.spark.api.java.JavaRDD so we can zip
     JavaRDD = invoke(fxrdd, "asJavaRDD")
 
     # Reuse the old index to create the PairRDD
     index = invoke(X, "keys")
     pairRDD = invoke(index, "zip", JavaRDD)
-   
+
     new_rddlist(pairRDD, X$classTag, cache)
 }
 
 
 #' Collect the ith element of an rddlist
 #' @export
-`[[.rddlist` <- function(x, i){
+`[[.rddlist` <- function(x, i) {
     javaindex = as.integer(i - 1L)
     javabytes = invoke(x, "lookup", javaindex)
     # The bytes come wrapped in a list
@@ -141,12 +131,12 @@ lapply_rdd <- function(X, FUN, cache=TRUE){
 #'
 #' a_nested = TRUE means that a is already in the form of a nested list with
 #' two layers: [ [a1], [a2], ... , [an] ]
-zip2 <- function(a, b, a_nested = FALSE, b_nested = FALSE){
+zip2 <- function(a, b, a_nested = FALSE, b_nested = FALSE) {
     # They must be nested for this to work
-    if(!a_nested){
+    if (!a_nested) {
         a = lapply_rdd(a, list)
     }
-    if(!b_nested){
+    if (!b_nested) {
         b = lapply_rdd(b, list)
     }
     aval = invoke(a, "values")
@@ -154,9 +144,9 @@ zip2 <- function(a, b, a_nested = FALSE, b_nested = FALSE){
     # class org.apache.spark.api.java.JavaPairRDD
 
     zipped = invoke(aval, "zip", bval)
-    # class org.apache.spark.rdd.ZippedPartitionsRDD2
-    # This has the same number of elements as the input a.
-    # Converting to rdd seems necessary for the invoke_new below
+    # class org.apache.spark.rdd.ZippedPartitionsRDD2 This has the same number of
+    # elements as the input a.  Converting to rdd seems necessary for the invoke_new
+    # below
     RDD = invoke(zipped, "rdd")
 
     partitionFunc <- function(partIndex, part) {
@@ -166,27 +156,20 @@ zip2 <- function(a, b, a_nested = FALSE, b_nested = FALSE){
     packageNamesArr <- serialize(NULL, NULL)
     broadcastArr <- list()
 
-    pairs <- invoke_new(sparkapi::spark_connection(a),
-                       "org.apache.spark.api.r.RRDD",  # A new instance of this class
-                       RDD,
-                       serialize(FUN_clean, NULL),
-                       "byte",  # name of serializer / deserializer
-                       "byte",  # name of serializer / deserializer
-                       packageNamesArr,  
-                       broadcastArr,
-                       a$classTag
-                       )
+    pairs <- invoke_new(sparkapi::spark_connection(a), "org.apache.spark.api.r.RRDD",
+        RDD, serialize(FUN_clean, NULL), "byte", "byte", packageNamesArr, broadcastArr,
+        a$classTag)
 
     JavaRDD = invoke(pairs, "asJavaRDD")
     index = invoke(a, "keys")
     pairRDD = invoke(index, "zip", JavaRDD)
 
-    new_rddlist(pairRDD, a$classTag, cache=FALSE)
+    new_rddlist(pairRDD, a$classTag, cache = FALSE)
 }
 
 
 #' Zip rdds together
-#' 
+#'
 #' For rdds a, b, ... of the same length n this creates an rddlist of length n
 #' where the ith element has the value list(a[[i]], b[[i]], ... )
 #'
@@ -197,34 +180,35 @@ zip2 <- function(a, b, a_nested = FALSE, b_nested = FALSE){
 #'      memory?
 #'
 #' @return rddlist A Spark Java Object representing the resulting rddlist
-zip_rdd <- function(..., cache=TRUE){
+zip_rdd <- function(..., cache = TRUE) {
     args = list(...)
     a = args[[1]]
     n = length(args)
 
     zipped = lapply_rdd(a, list, cache = FALSE)
 
-    if(n == 1L){
-        # Easy out for trivial case
-        # Note zipping will always have the same nested structure
+    if (n == 1L) {
+        # Easy out for trivial case Note zipping will always have the same nested
+        # structure
         return(zipped)
     }
 
     # A 'reduce' operation
-    for(i in 2:n){
+    for (i in 2:n) {
         zipped = zip2(zipped, args[[i]], a_nested = TRUE)
     }
 
-    # The idea with caching is to avoid it in the intermediate steps
-    # TODO: verify that this strategy is actually useful
-    if(cache) invoke(zipped, "cache")
+    # The idea with caching is to avoid it in the intermediate steps TODO: verify
+    # that this strategy is actually useful
+    if (cache)
+        invoke(zipped, "cache")
 
     zipped
 }
 
 
 #' Apply a Function to multiple rddlist arguments
-#' 
+#'
 #' Modeled after \code{mapply} in base R
 #'
 #' @param FUN function to apply to each element of X
@@ -240,14 +224,14 @@ zip_rdd <- function(..., cache=TRUE){
 #' xy <- mapply_rdd(c, x, y)
 #'
 #' @export
-mapply_rdd <- function(FUN, ..., cache = TRUE){
+mapply_rdd <- function(FUN, ..., cache = TRUE) {
 
     # TODO: add recycling, Moreargs
     FUN = match.fun(FUN)
     zipped = zip_rdd(..., cache = FALSE)
-    
+
     # The parts in zipped are always lists
-    zipFUN = function(zipped_part){
+    zipFUN = function(zipped_part) {
         do.call(FUN, zipped_part)
     }
 
@@ -256,21 +240,21 @@ mapply_rdd <- function(FUN, ..., cache = TRUE){
 
 
 #' length of rddlist
-#' 
+#'
 #' @param rdd rddlist
 #'
-#' @return n integer length 
+#' @return n integer length
 #' @export
-length_rdd <- function(rdd){
+length_rdd <- function(rdd) {
     # sparkapi maps Java long -> double
     as.integer(invoke(rdd, "count"))
 }
 
 
 #' Collect from Spark
-#' 
+#'
 #' Collects and unserializes the entire rdd from Spark back into local R.
-#' 
+#'
 #' @param rdd rddlist
 #'
 #' @return list The contents of rddlist in a local R list
@@ -281,7 +265,7 @@ length_rdd <- function(rdd){
 #' x2 <- collect(xrdd)
 #' identical(x, x2)
 #' @export
-collect <- function(rdd){
+collect <- function(rdd) {
     values = invoke(rdd, "values")
     collected = invoke(values, "collect")
     rawlist = invoke(collected, "toArray")
