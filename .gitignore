@@ -38,3 +38,5 @@ log4j.spark.log*
 # Text editor
 *.swp
 .Rproj.user
+
+derby.log
