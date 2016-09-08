@@ -8,7 +8,7 @@ Maintainer: Clark Fitzgerald <clarkfitzg@gmail.com>
 Depends:
     R (>= 3.0.0)
 Imports:
-    sparkapi
+    sparklyr
 Suggests:
     testthat, ddR
 Description: Provides distributed computation through a 
