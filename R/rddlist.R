@@ -30,7 +30,7 @@ rddlist <- function(sc, X, cache = TRUE) {
     # An RDD of the serialized R parts This is class
     # org.apache.spark.api.java.JavaRDD
     RDD = invoke_static(sc, "org.apache.spark.api.r.RRDD", "createRDDFromArray",
-        sparklyr:::java_context(sc), serial_parts)
+        sparklyr::java_context(sc), serial_parts)
 
     # (data, integer) pairs
     backwards = invoke(RDD, "zipWithIndex")
