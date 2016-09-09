@@ -8,7 +8,7 @@ rddlist(sc, X, cache = TRUE)
 }
 \arguments{
 \item{sc}{Spark connection as returned from
-\code{\link[sparkapi]{start_shell}}}
+\code{\link[sparklyr]{start_shell}}}
 
 \item{X}{local R list.}
 

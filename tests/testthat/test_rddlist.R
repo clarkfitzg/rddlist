@@ -2,7 +2,7 @@
 library(sparklyr)
 
 if(!exists("sc")){
-    sc <- start_shell(master = "local")
+    sc <- spark_connect(master = "local")
 }
 
 x = list(1:10, letters, rnorm(10))
